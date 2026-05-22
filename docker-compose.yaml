@@ -1,0 +1,67 @@
+services:
+  platform-finals_docker-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lazaro-finals-app
+    volumes:
+      - .:/app
+      - app-vendor:/app/vendor
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: "mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@platform-finals_docker-db:3306/${MYSQL_DATABASE}?serverVersion=8.0.32&charset=utf8mb4"
+    depends_on:
+      platform-finals_docker-db:
+        condition: service_healthy
+    networks:
+      - lazaro-finals_network
+
+  platform-finals_docker-db:
+    image: mysql:8.0
+    container_name: lazaro-finals-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - lazaro-finals_network
+
+  platform-finals_docker-phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: lazaro-finals-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: platform-finals_docker-db
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      platform-finals_docker-db:
+        condition: service_healthy
+    networks:
+      - lazaro-finals_network
+
+networks:
+  lazaro-finals_network:
+    driver: bridge
+
+volumes:
+  db-data:
+  app-vendor:
