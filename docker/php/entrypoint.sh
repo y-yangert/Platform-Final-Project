@@ -41,5 +41,10 @@ php bin/console cache:clear --no-interaction
 echo "Warming cache..."
 php bin/console cache:warmup --no-interaction
 
-echo "Starting web server on :8000..."
-exec php -S 0.0.0.0:8000 -t public
+echo "Starting PHP-FPM..."
+
+php-fpm -D
+
+echo "Starting nginx..."
+
+exec nginx -g "daemon off;"
