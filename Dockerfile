@@ -36,7 +36,7 @@ RUN composer install --no-dev --optimize-autoloader
 
 RUN mkdir -p var/cache var/log public/assets && \
     chown -R www-data:www-data var public/assets
-F
+
 COPY docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
 
 COPY docker/nginx/nginx.conf /etc/nginx/conf.d/default.conf
